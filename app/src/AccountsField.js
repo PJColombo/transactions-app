@@ -2,27 +2,11 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import makeCancelable from 'makecancelable'
-import {
-  Button,
-  Field,
-  IconPlus,
-  IconUpload,
-  theme,
-  textStyle,
-  GU,
-} from '@aragon/ui'
+import { Button, Field, IconPlus, theme, textStyle, GU } from '@aragon/ui'
 
 import AccountField from './AccountField'
 
-<<<<<<< HEAD
 import { csvStringToArray } from '../src/lib/csv-utils'
-=======
-import {
-  csvStringToArray,
-  readFile,
-  removeCSVHeaders,
-} from '../src/lib/csv-utils'
->>>>>>> c17ea1b9a598a149ccac9b8d8b4822efcc68d94b
 import { DEFAULT_STAKE } from './lib/account-utils'
 
 function useFieldsLayout() {
@@ -69,10 +53,6 @@ const AccountsField = React.memo(
         setShowDeleteAll(accounts.length > ACCOUNTS_SIZE)
       }, [])
 
-      useEffect(() => {
-        checkAccountsLength(accounts)
-      }, [accounts.length])
-
       const focusLastAccount = useCallback(() => {
         setFocusLastAccountNext(true)
       }, [])
@@ -80,14 +60,8 @@ const AccountsField = React.memo(
       const addAccount = () => {
         const newAccounts = [...accounts, ['', accountStake]]
         onChange(newAccounts)
-<<<<<<< HEAD
         checkAccountsLength(newAccounts)
         focusLastAccount()
-=======
-        setTimeout(() => {
-          focusLastAccount()
-        }, 0)
->>>>>>> c17ea1b9a598a149ccac9b8d8b4822efcc68d94b
       }
 
       const removeAccount = index => {
@@ -97,19 +71,14 @@ const AccountsField = React.memo(
               // gets clicked, we only empty the field.
               [['', accountStake]]
             : accounts.filter((_, i) => i !== index)
-        removeAllAccounts()
-        // We force rerendering because AccountFields use index as key
-        setTimeout(() => {
-          onChange(newAccounts)
-        }, 0)
+        onChange(newAccounts)
+        checkAccountsLength(newAccounts)
+        focusLastAccount()
       }
 
       const removeAllAccounts = () => {
         onChange([['', accountStake]])
         setShowDeleteAll(false)
-        setTimeout(() => {
-          focusLastAccount()
-        }, 0)
       }
 
       const hideRemoveButton = accounts.length < 2 && !accounts[0]
@@ -123,21 +92,11 @@ const AccountsField = React.memo(
       }
 
       const handlePaste = (pasteData, fieldIndex) => {
-        let pasteAccounts = csvStringToArray(pasteData)
-        if (pasteAccounts[0][1] === undefined) {
-          pasteAccounts = csvStringToArray(pasteData, ',')
-        }
+        const pasteAccounts = csvStringToArray(pasteData)
         const newAccounts = [...accounts]
         newAccounts.splice(fieldIndex, 1, ...pasteAccounts)
-        if (newAccounts[newAccounts.length - 1][0] === '') {
-          newAccounts.pop() // Remove last empty element
-        }
         onChange(newAccounts)
-      }
-
-      const handleImport = data => {
-        removeAllAccounts()
-        handlePaste(data, 0)
+        checkAccountsLength(newAccounts)
       }
 
       return (
@@ -169,7 +128,6 @@ const AccountsField = React.memo(
             ))}
           </div>
           <Buttons>
-<<<<<<< HEAD
             <Button
               label="Add more"
               size="small"
@@ -182,23 +140,6 @@ const AccountsField = React.memo(
               }
               onClick={addAccount}
             />
-=======
-            <span>
-              <Button
-                label="Add more"
-                size="small"
-                icon={
-                  <IconPlus
-                    css={`
-                      color: ${theme.accent};
-                    `}
-                  />
-                }
-                onClick={addAccount}
-              />
-              <ImportButton handleImport={handleImport} />
-            </span>
->>>>>>> c17ea1b9a598a149ccac9b8d8b4822efcc68d94b
             {showDeleteAll && (
               <Button
                 label="Delete all"
@@ -213,37 +154,6 @@ const AccountsField = React.memo(
     }
   )
 )
-
-const ImportButton = ({ handleImport = f => f }) => {
-  const fileInput = useRef(null)
-  const handleChange = async file => {
-    const csv = removeCSVHeaders(await readFile(file))
-    handleImport(csv)
-  }
-  const handleClick = () => fileInput.current.click()
-  return (
-    <>
-      <Button
-        onClick={handleClick}
-        size="small"
-        label="Import"
-        icon={
-          <IconUpload
-            css={`
-              color: ${theme.accent};
-            `}
-          />
-        }
-      />
-      <input
-        ref={fileInput}
-        css={{ display: 'none' }}
-        type="file"
-        onChange={e => handleChange(e.target.files[0])}
-      />
-    </>
-  )
-}
 
 const Buttons = styled.div`
   display: flex;

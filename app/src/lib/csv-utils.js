@@ -1,4 +1,6 @@
-export function csvStringToArray(strData, strDelimiter = '\t') {
+export function csvStringToArray(strData) {
+  const strDelimiter = '\t'
+
   // Create a regular expression to parse the CSV values.
   const objPattern = new RegExp(
     // Delimiters.
@@ -60,15 +62,3 @@ export function csvStringToArray(strData, strDelimiter = '\t') {
   // Return the parsed data.
   return arrData
 }
-
-export function readFile(file) {
-  return new Promise((resolve, reject) => {
-    var fr = new FileReader()
-    fr.onload = () => {
-      resolve(fr.result)
-    }
-    fr.readAsText(file)
-  })
-}
-
-export const removeCSVHeaders = text => text.substring(text.indexOf('\n') + 1)

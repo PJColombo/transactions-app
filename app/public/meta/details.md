@@ -1,5 +1,6 @@
-Create a vote with multiple token mintings or token transfers.
+An application for Aragon.
 
 **Features**
-- Supports token mintings in Token Manager apps and token transfers in Finance apps.
-- Supports copying and pasting from a spreadsheet.
+- Feature \#1.
+- Feature \#2.
+- Feature \#3.

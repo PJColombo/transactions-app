@@ -15,7 +15,6 @@ contract Template is BaseTemplate, TokenCache {
     bool constant private TOKEN_TRANSFERABLE = true;
     uint8 constant private TOKEN_DECIMALS = uint8(18);
     uint256 constant private TOKEN_MAX_PER_ACCOUNT = uint256(0);
-    uint64 constant private DEFAULT_FINANCE_PERIOD = uint64(30 days);
 
     constructor (
         DAOFactory _daoFactory,
@@ -78,14 +77,9 @@ contract Template is BaseTemplate, TokenCache {
         _ensureTemplateSettings(_holders, _stakes, _votingSettings);
 
         (Kernel dao, ACL acl) = _createDAO();
-        (Voting voting, Finance finance) = _setupBaseApps(dao, acl, _holders, _stakes, _votingSettings);
-        _createEvmScriptsRegistryPermissions(acl, voting, voting);
+        (Voting voting) = _setupBaseApps(dao, acl, _holders, _stakes, _votingSettings);
         // Setup transactions app
         _setupCustomApp(dao, acl, voting);
-        MiniMeToken token = _createToken("Token 2", "TKN2", TOKEN_DECIMALS);
-        _cacheToken(token, msg.sender);
-        _setupBaseApps(dao, acl, _holders, _stakes, _votingSettings);
-        _transferCreatePaymentManagerFromTemplate(acl, finance, voting);
         _transferRootPermissionsFromTemplateAndFinalizeDAO(dao, voting);
     }
 
@@ -97,32 +91,26 @@ contract Template is BaseTemplate, TokenCache {
         uint64[3] memory _votingSettings
     )
         internal
-        returns (Voting, Finance)
+        returns (Voting)
     {
         MiniMeToken token = _popTokenCache(msg.sender);
-        Vault vault = _installVaultApp(_dao);
-        Finance finance = _installFinanceApp(_dao, vault, DEFAULT_FINANCE_PERIOD);
         TokenManager tokenManager = _installTokenManagerApp(_dao, token, TOKEN_TRANSFERABLE, TOKEN_MAX_PER_ACCOUNT);
         Voting voting = _installVotingApp(_dao, token, _votingSettings);
 
         _mintTokens(_acl, tokenManager, _holders, _stakes);
-        _setupBasePermissions(_acl, vault, voting, finance, tokenManager);
+        _setupBasePermissions(_acl, voting, tokenManager);
 
-        return (voting, finance);
+        return (voting);
     }
 
     function _setupBasePermissions(
         ACL _acl,
-        Vault _vault,
         Voting _voting,
-        Finance _finance,
         TokenManager _tokenManager
     )
         internal
     {
-        _createVaultPermissions(_acl, _vault, _finance, _voting);
-        _createFinancePermissions(_acl, _finance, _voting, _voting);
-        _createFinanceCreatePaymentsPermission(_acl, _finance, _voting, address(this));
+        _createEvmScriptsRegistryPermissions(_acl, _voting, _voting);
         _createVotingPermissions(_acl, _voting, _voting, _tokenManager, _voting);
         _createTokenManagerPermissions(_acl, _tokenManager, _voting, _voting);
     }
@@ -158,7 +146,8 @@ contract Template is BaseTemplate, TokenCache {
     )
         internal
     {
-        _acl.createPermission(_grantee, _app, "0x0", _manager); // Dummy role
+        _acl.createPermission(_grantee, _app, _app.INCREMENT_ROLE(), _manager);
+        _acl.createPermission(ANY_ENTITY, _app, _app.DECREMENT_ROLE(), _manager);
     }
 
     //--------------------------------------------------------------//
